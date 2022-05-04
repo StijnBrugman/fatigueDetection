@@ -94,7 +94,7 @@ EAR = 0
 while True:
 
     _, frame = cap.read()
-    frame = rescale_frame(frame, percent = 70)
+    frame = rescale_frame(frame, percent = 30)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray)
     current_time = time.time()
@@ -117,28 +117,23 @@ while True:
         right_blink = blinked(landmarks[42],landmarks[43],
                               landmarks[44], landmarks[47], landmarks[46], landmarks[45])
 
-        EAR_left = (compute(landmarks[38], landmarks[42]) + compute(landmarks[39], landmarks[41]))/(2*compute(landmarks[37],landmarks[40]))
-        EAR_right = (compute(landmarks[44],landmarks[48]) + compute(landmarks[45],landmarks[47]))/(2*compute(landmarks[43],landmarks[46]))
+        EAR_left = (compute(landmarks[37], landmarks[41]) + compute(landmarks[38], landmarks[40]))/(2*compute(landmarks[36],landmarks[39]))
+        EAR_right = (compute(landmarks[43],landmarks[47]) + compute(landmarks[44],landmarks[46]))/(2*compute(landmarks[42],landmarks[45]))
+        # print(EAR_left, EAR_right)
+        #EAR_left = (compute(landmarks[38], landmarks[42]) + compute(landmarks[39], landmarks[41]))/(2*compute(landmarks[37],landmarks[40]))
+        #EAR_right = (compute(landmarks[44],landmarks[48]) + compute(landmarks[45],landmarks[47]))/(2*compute(landmarks[43],landmarks[46]))
         EAR = (EAR_left + EAR_right) / 2
 
-
-
-        # x_values.append(EAR)
-        # y_values.append(time.time())
-        # plot_EAR.set_xdata(x_values)
-        # plot_EAR.set_ydata(y_values)
-        # figure.canvas.draw()
-        # figure.canvas.flush_events()
-        # plt.pause(0.05)
-        # update_figure()
         cv2.putText(frame, status, (100,100), cv2.FONT_HERSHEY_SIMPLEX, 1.2, color,3)
 
         for n in range(0, 68):
             (x,y) = landmarks[n]
             cv2.circle(face_frame, (x, y), 1, (255, 255, 255), -1)
+            cv2.putText(face_frame, str(n), (x,y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, 255, 2)
         cv2.putText(face_frame, str(FPS), (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255,255,255),2)
         # cv2.imshow("Result of detector", face_frame)
     FPS = 1/(current_time-previous_time)
+    print(FPS)
     # cv2.imshow("Frame", frame)
     vis.set_y(EAR)
     vis.update()
