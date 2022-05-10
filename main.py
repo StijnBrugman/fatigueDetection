@@ -7,9 +7,11 @@ from visualization import Visualization
 from processing import Processing
 from parser import Parser
 
-import sys
+import sys, time
 import keyboard
 
+import warnings
+warnings.filterwarnings("ignore")
 
 
 if __name__ == '__main__':
@@ -29,24 +31,32 @@ if __name__ == '__main__':
     cv2.namedWindow("frame")
 
     while True:
-        if parser.get_arg('vis'):
-            if acq.buffer_availble():
+        current_time = time.time()
+
+        if acq.buffer_availble():
                 prs.update(acq.get_from_buffer())
                 EAR_data = prs.get_from_buffer('EAR')
-                
                 vis.update(EAR_data)
-            
-            if prs.buffer_availble('BLINK'):
+        
+        if prs.buffer_availble('BLINK'):
                 BLINK_data = prs.get_from_buffer('BLINK')
                 vis.update_BLINK(BLINK_data)
+
+        if parser.get_arg('vis'):
             ani = vis.run()
         
         if acq.frame_accisible() and parser.get_arg('cam'):
             frame = acq.get_frame()
             cv2.imshow("Frame", frame)
 
+        FPS = 1.0 / (time.time()-current_time +0.00001)
+        # print("[INFO] Framerate Main-Threat is: {}".format(FPS))
+
         if keyboard.is_pressed('q'):
             break
+
+
+
 
 acq.stop()
 cv2.destroyAllWindows()

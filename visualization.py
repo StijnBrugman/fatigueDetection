@@ -20,11 +20,11 @@ class Visualization():
         self.BLINK_fig = self.figure.add_subplot(122)
 
 
-        self.x_values = [0]
-        self.y_values = [0.4]
+        self.x_values = [0, 0.1]
+        self.y_values = [0.4, 0.4]
 
-        self.BLINK_x_values = [0]
-        self.BLINK_y_values = [0]
+        self.BLINK_x_values = [0, 0.001]
+        self.BLINK_y_values = [0, 0]
 
         self.anim = None
 
@@ -62,6 +62,7 @@ class Visualization():
         x = np.array(self.x_values[-PLOTTING_SIZE:])
         y = np.array(self.y_values[-PLOTTING_SIZE:])
 
+        #TODO: Remove this since this already done
         flipped_data = y * -1
         # print("Visz: {}".format(flipped_data))
         min_data, properties = find_peaks(flipped_data, height=(None, 0.3), prominence=0.14, width=0.2)
@@ -97,6 +98,7 @@ class Visualization():
 
         self.BLINK_fig.plot(self.BLINK_x_values[-PLOTTING_SIZE:], self.BLINK_y_values, color = 'red')
         self.BLINK_fig.set_ylim(0, 0.2)
+        self.BLINK_fig.set_xlim(x[0],x[-1])
 
     def has_blinked(self):
         pass

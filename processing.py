@@ -53,8 +53,10 @@ class Processing():
        
 
         if self.blink_detected(index[-1]):
-            self.add_to_buffer('BLINK', (self.x_values['EAR'][index], temp_y_value))
-            print("[INFO] Blink Detected with paramters: {}".format(self.y_values['BLINK'][-1]))
+            
+            self.add_to_buffer('BLINK', (self.x_values['EAR'][index[-1]], temp_y_value))
+            print("[DATA] Blink Detected with paramters: {}".format(self.y_values['BLINK'][-1]))
+            print(self.x_values['BLINK'])
 
     def find_blinks(self):
         return find_peaks(self.y_values['EAR'][-1000:] * -1, height=(None, 0.3), prominence=0.14, width=0.2)

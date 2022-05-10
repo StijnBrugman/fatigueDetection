@@ -5,6 +5,9 @@ import numpy as np
 import dlib
 from imutils import face_utils
 import time
+import os
+import glob
+
 
 class Acquisition(threading.Thread):
     def __init__(self):
@@ -32,22 +35,47 @@ class Acquisition(threading.Thread):
         self.frame = None
 
         self.accesible = False
+        self.frames = []
+    
+
 
     def run(self):
         print("[INFO] Connection Acquisition is established")
+
+        files = glob.glob('/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/*')
+        for f in files:
+            os.remove(f)
+        
+        print("[INFO] All old frames have been removed")
+
+        width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
         while self.running:
+            start_time = time.time()
             _, frame = self.camera.read()
+            
             
 
             # Compression
-            frame = self.compress_image(frame, .3)
+            # frame = self.compress_image(frame, .3)
+
+            # Cropping
+            frame = frame[0:150,100:300]
+            frame = frame[0:height/2, width/2 - 50: width/2 + 50]
+            # cv2.imwrite("/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/test.png", frame)
+            # print(frame)
             
 
             # GrayScaling
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.detector(gray_frame, 0)
-            
+            timestamp = time.time() - self.start_time
+            self.frames.append(frame)
+            file_name = "/Users/stijnbqrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{:.2f}].png".format(timestamp)
+            cv2.imwrite(file_name, frame)
+
+
             for face in faces:
                 x1 = face.left()
                 y1 = face.top()
@@ -59,7 +87,7 @@ class Acquisition(threading.Thread):
 
 
                 landmarks = self.predictor(gray_frame, face)
-                timestamp = time.time() - self.start_time
+                
                 landmarks = face_utils.shape_to_np(landmarks)
                 self.eye_landmarks['left'] = landmarks[self.start_l:self.end_l]
                 self.eye_landmarks['right'] = landmarks[self.start_r:self.end_r]
@@ -74,6 +102,8 @@ class Acquisition(threading.Thread):
             self.accesible = True
                 # self.buffer.append(self.eye_landmarks)
             # cv2.imshow("Frame", frame)
+            FPS = 1 / (time.time() - start_time)
+            # print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()
         
     def frame_accisible(self):
