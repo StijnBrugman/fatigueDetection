@@ -1,16 +1,13 @@
 #Importing OpenCV Library for basic image processing functions
 import cv2
 
-# Dlib for deep learning based Modules and face landmark detection
-import dlib
-
 from Acquisition import Acquisition
 
 from visualization import Visualization
 from processing import Processing
+from parser import Parser
 
 import sys
-import argparse
 import keyboard
 
 
@@ -27,24 +24,24 @@ if __name__ == '__main__':
 
     prs = Processing()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--cam', action='store_true')
-    parser.add_argument('-v', '--vis', action='store_true')
-    args = parser.parse_args()
+    parser = Parser()
 
-
-
-
+    cv2.namedWindow("frame")
 
     while True:
-        if acq.buffer_availble():
-            prs.update(acq.get_from_buffer())
-            EAR_data = prs.get_from_buffer()
-            if args.vis:
+        if parser.get_arg('vis'):
+            if acq.buffer_availble():
+                prs.update(acq.get_from_buffer())
+                EAR_data = prs.get_from_buffer('EAR')
+                
                 vis.update(EAR_data)
-                vis.run()
+            
+            if prs.buffer_availble('BLINK'):
+                BLINK_data = prs.get_from_buffer('BLINK')
+                vis.update_BLINK(BLINK_data)
+            ani = vis.run()
         
-        if acq.frame_accisible() and args.cam:
+        if acq.frame_accisible() and parser.get_arg('cam'):
             frame = acq.get_frame()
             cv2.imshow("Frame", frame)
 
