@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import pandas as pd
 import time
 
-from Settings import PLOTTING_SIZE
+from Settings import PLOTTING_SIZE, PROMINENCE
 
 from scipy.signal import lfilter, savgol_filter, filtfilt, butter, find_peaks
 
@@ -65,7 +65,7 @@ class Visualization():
         #TODO: Remove this since this already done
         flipped_data = y * -1
         # print("Visz: {}".format(flipped_data))
-        min_data, properties = find_peaks(flipped_data, height=(None, 0.3), prominence=0.14, width=0.2)
+        min_data, properties = find_peaks(flipped_data, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
         # print("[INFO] PEAK DATA IS {}".format(min_data))
         # print(properties)
         if self.has_blinked():

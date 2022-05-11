@@ -30,10 +30,13 @@ if __name__ == '__main__':
 
     cv2.namedWindow("frame")
 
+    acq.set_setting(parser.get_arg('safe'))
+
     while True:
         current_time = time.time()
 
         if acq.buffer_availble():
+                # print(len(acq.buffer))
                 prs.update(acq.get_from_buffer())
                 EAR_data = prs.get_from_buffer('EAR')
                 vis.update(EAR_data)

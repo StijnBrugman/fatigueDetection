@@ -36,6 +36,8 @@ class Acquisition(threading.Thread):
 
         self.accesible = False
         self.frames = []
+
+        self.safe = False
     
 
 
@@ -48,8 +50,7 @@ class Acquisition(threading.Thread):
         
         print("[INFO] All old frames have been removed")
 
-        width = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
         
         while self.running:
             start_time = time.time()
@@ -61,8 +62,12 @@ class Acquisition(threading.Thread):
             # frame = self.compress_image(frame, .3)
 
             # Cropping
-            frame = frame[0:150,100:300]
-            frame = frame[0:height/2, width/2 - 50: width/2 + 50]
+            x_lim_frame = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH) / 2)
+            y_lim_frame = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT) / 2)
+
+            # print(width, height)
+            frame = frame[50:y_lim_frame + 50, x_lim_frame - 200:x_lim_frame + 200]
+            # frame = frame[0:height/2, width/2 - 50: width/2 + 50]
             # cv2.imwrite("/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/test.png", frame)
             # print(frame)
             
@@ -71,9 +76,11 @@ class Acquisition(threading.Thread):
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.detector(gray_frame, 0)
             timestamp = time.time() - self.start_time
-            self.frames.append(frame)
-            file_name = "/Users/stijnbqrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{:.2f}].png".format(timestamp)
-            cv2.imwrite(file_name, frame)
+            # self.frames.append(frame)
+            # print("frames",len(self.frames))
+            
+            
+            
 
 
             for face in faces:
@@ -91,7 +98,12 @@ class Acquisition(threading.Thread):
                 landmarks = face_utils.shape_to_np(landmarks)
                 self.eye_landmarks['left'] = landmarks[self.start_l:self.end_l]
                 self.eye_landmarks['right'] = landmarks[self.start_r:self.end_r]
-                self.add_to_buffer((timestamp,self.eye_landmarks))
+                self.add_to_buffer((timestamp, self.eye_landmarks))
+                print(len(self.buffer))
+
+                if self.safe:
+                    file_name = "/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{:.2f}].png".format(timestamp)
+                    cv2.imwrite(file_name, frame)
 
             for landmark_l, landmark_r in zip(self.eye_landmarks['left'], self.eye_landmarks['right']):
                 (x1, y1) = landmark_l
@@ -103,6 +115,7 @@ class Acquisition(threading.Thread):
                 # self.buffer.append(self.eye_landmarks)
             # cv2.imshow("Frame", frame)
             FPS = 1 / (time.time() - start_time)
+            
             # print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()
         
@@ -126,6 +139,10 @@ class Acquisition(threading.Thread):
 
     def buffer_availble(self):
         return self.buffer
+    
+    def set_setting(self, safe):
+        self.safe = safe
+
 
     @staticmethod
     def compress_image(frame, percentage = .75):
