@@ -35,7 +35,7 @@ class Acquisition(threading.Thread):
         self.frame = None
 
         self.accesible = False
-        self.frames = []
+        self.frames = {}
 
         self.safe = False
     
@@ -76,7 +76,9 @@ class Acquisition(threading.Thread):
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.detector(gray_frame, 0)
             timestamp = time.time() - self.start_time
-            # self.frames.append(frame)
+            time_key = str("{:.2f}".format(timestamp))
+            self.frames[time_key] = frame
+            
             # print("frames",len(self.frames))
             
             
@@ -99,11 +101,8 @@ class Acquisition(threading.Thread):
                 self.eye_landmarks['left'] = landmarks[self.start_l:self.end_l]
                 self.eye_landmarks['right'] = landmarks[self.start_r:self.end_r]
                 self.add_to_buffer((timestamp, self.eye_landmarks))
-                print(len(self.buffer))
 
-                if self.safe:
-                    file_name = "/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{:.2f}].png".format(timestamp)
-                    cv2.imwrite(file_name, frame)
+                
 
             for landmark_l, landmark_r in zip(self.eye_landmarks['left'], self.eye_landmarks['right']):
                 (x1, y1) = landmark_l
@@ -116,7 +115,7 @@ class Acquisition(threading.Thread):
             # cv2.imshow("Frame", frame)
             FPS = 1 / (time.time() - start_time)
             
-            # print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
+            #print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()
         
     def frame_accisible(self):
@@ -142,6 +141,14 @@ class Acquisition(threading.Thread):
     
     def set_setting(self, safe):
         self.safe = safe
+
+    def safe_frames(self, frames_index):
+        if not self.safe: return
+        for time in frames_index:
+            index = str("{:.2f}".format(time))
+            file_name = "/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{}].png".format(index)
+            cv2.imwrite(file_name, self.frames.get(index))
+        print("[INFO] Frames have been saved")
 
 
     @staticmethod

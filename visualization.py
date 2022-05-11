@@ -7,12 +7,16 @@ import time
 from Settings import PLOTTING_SIZE, PROMINENCE
 
 from scipy.signal import lfilter, savgol_filter, filtfilt, butter, find_peaks
+import threading
 
 # Interactive mode
 plt.ion()
 
-class Visualization():
+class Visualization(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
+        self.running = True
+
         self.figure = plt.figure(figsize=(8,8))
         self.EAR_fig = self.figure.add_subplot(121)
         self.EAR_fig.set_ylim(2,6)
@@ -28,11 +32,16 @@ class Visualization():
 
         self.anim = None
 
+    def stop(self):
+        self.running = False
+
     def run(self):
-        self.anim = animation.FuncAnimation(self.figure, self._update, interval=1000, blit = False)
-        plot = plt.show(block = False)
-        plt.pause(.001)
-        return self.anim
+        print("[INFO] Visualization Thread setup")
+        while self.running:
+            # self.anim = animation.FuncAnimation(self.figure, self._update, interval=1000, blit = False)
+            # plot = plt.show(block = False)
+            # plt.pause(.00001)
+            pass
     
     # def stop(self):
     #     self.running = False
