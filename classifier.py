@@ -37,6 +37,12 @@ class Classifier(threading.Thread):
             'INIT': np.array([0]),
             'RUN': np.array([0])
         }
+
+        self.TRESHOLDS = {
+            'entropy': 0,
+            'blink': 0,
+            'perclos': 0
+        }
         
 
     def run(self):
@@ -50,35 +56,44 @@ class Classifier(threading.Thread):
             # Running phase
             (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
             
-            if time.time() - self.timer > .5:
+            self.update_parameters(PERCLOS, n_blink, key)
+
+            # Printing every ... second
+            if time.time() - self.print_timer > 0.5:
+                self.print_timer = time.time()
+                print(self.TRESHOLDS)
+        print("[INFO] Classifier Thread Closed")
+
+    def update_parameters(self, PERCLOS, n_blink, key):
+        if time.time() - self.timer > .5:
                 self.timer = time.time()
                 modified_list = np.round(self.data['EAR']['y'][-100:] * 100, decimals= 2)
                 entropy = self.appr_entropy(modified_list, 2, 3)
                 self.entropy[key] = np.append(self.entropy[key], entropy)
             
-            self.n_blink[key] = np.append(self.n_blink[key], n_blink)
-            self.perclos[key] = np.append(self.perclos[key], PERCLOS)
+        self.n_blink[key] = np.append(self.n_blink[key], n_blink)
+        self.perclos[key] = np.append(self.perclos[key], PERCLOS)
 
-            # print(entropy)
-            if time.time() - self.print_timer > 0.5:
-                self.print_timer = time.time()
+        # Updating the INIT_TRESHOLDS 
+        if key == 'INIT':
+            time_spent = (time.time() - self.start_time)
+            time_constant = time_spent / 30
+            blinking_n = len(self.data['BLINK']['x'])
 
-                time_constant = (time.time() - self.start_time) / 30
-                blinking_n = len(self.data['BLINK']['x'])
+            time_blinked = 0
+            for y  in self.data['BLINK']['y']:
+                width = y['right'] - y['left']
+                time_blinked += width
+            
+            self.TRESHOLDS = {
+                np.average(self.entropy['INIT']), 
+                blinking_n / time_constant, 
+                time_blinked / time_spent
+            }
 
-                time_blinked = 0
-                for x in self.data['BLINK']['x']:
-                    print(x)
-                    width = x['right'] - x['left']
-                    time_blinked += width
 
 
 
-
-
-                # print(self.entropy['RUN'][-1], self.n_blink['RUN'][-1], self.perclos['RUN'][-1],  )
-                print(np.average(self.entropy['INIT']), blinking_n / time_constant, time_blinked / time_constant)
-        print("[INFO] Classifier Thread Closed")
 
     def stop(self):
         self.running = False
