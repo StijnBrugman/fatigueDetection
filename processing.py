@@ -40,8 +40,6 @@ class Processing():
         if not index.size: return
         #print(min_data, properties)
 
-
-
         temp_y_value = {
             'y': self.y_values['EAR'][index[-1]],
             'left': self.x_values['EAR'][round(properties['left_ips'][-1])],
@@ -49,10 +47,6 @@ class Processing():
             'prominences': properties['prominences'][-1]
         }
 
-
-        # print("x_values", len(self.x_values['EAR']))
-       
-        # print(self.x_values['EAR'][index[-1]])
         if self.blink_detected(index[-1]):
             self.add_to_buffer('BLINK', (self.x_values['EAR'][index[-1]], temp_y_value))
             print("[DATA] Blink Detected with duration: {}s".format(self.y_values['BLINK'][-1]['right']-self.y_values['BLINK'][-1]['left']))
@@ -60,11 +54,8 @@ class Processing():
     def find_blinks(self):
         return find_peaks(self.y_values['EAR'][-1000:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
 
-    
-
     def blink_detected(self, index):
         if not self.y_values['BLINK'].size: return True
-        # print("Comparison", self.y_values['BLINK'], self.y_values['EAR'][index])
         return self.y_values['BLINK'][-1]['y'] != self.y_values['EAR'][index]
 
 

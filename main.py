@@ -42,16 +42,15 @@ if __name__ == '__main__':
             current_time = time.time()
 
             if acq.buffer_availble():
-                    # print(len(acq.buffer))
                     prs.update(acq.get_from_buffer())
                     EAR_data = prs.get_from_buffer('EAR')
                     vis.update(EAR_data)
+                    print(prs.y_values)
             
             if prs.buffer_availble('BLINK'):
                     BLINK_data = prs.get_from_buffer('BLINK')
+                    print(BLINK_data)
                     vis.update_BLINK(BLINK_data)
-
-            
             
             if acq.frame_accisible() and parser.get_arg('cam'):
                 frame = acq.get_frame()
@@ -64,6 +63,7 @@ if __name__ == '__main__':
                 break
     except KeyboardInterrupt:
         pass
+    
     print("[INFO] Exiting program")
     acq.safe_frames(prs.x_values['BLINK'])
     acq.stop()
