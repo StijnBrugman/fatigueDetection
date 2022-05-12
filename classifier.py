@@ -26,16 +26,16 @@ class Classifier(threading.Thread):
         self.print_timer = 0
 
         self.entropy = {
-            'INIT': np.array([]),
-            'RUN': np.array([])
+            'INIT': np.array([0]),
+            'RUN': np.array([0])
         }
         self.n_blink = {
-            'INIT': np.array([]),
-            'RUN': np.array([])
+            'INIT': np.array([0]),
+            'RUN': np.array([0])
         }
         self.perclos = {
-            'INIT': np.array([]),
-            'RUN': np.array([])
+            'INIT': np.array([0]),
+            'RUN': np.array([0])
         }
         
 
@@ -60,12 +60,24 @@ class Classifier(threading.Thread):
             self.perclos[key] = np.append(self.perclos[key], PERCLOS)
 
             # print(entropy)
-            if time.time() - self.print_timer > 2:
+            if time.time() - self.print_timer > 0.5:
                 self.print_timer = time.time()
 
-                # time_constant = (time.time() - self.start_time) 
+                time_constant = (time.time() - self.start_time) / 30
+                blinking_n = len(self.data['BLINK']['x'])
 
-                # print(np.average(self.entropy['RUN']), np.average((self.n_blink['RUN'])), np.average(self.perclos['RUN']))
+                time_blinked = 0
+                for x in self.data['BLINK']['x']:
+                    print(x)
+                    width = x['right'] - x['left']
+                    time_blinked += width
+
+
+
+
+
+                # print(self.entropy['RUN'][-1], self.n_blink['RUN'][-1], self.perclos['RUN'][-1],  )
+                print(np.average(self.entropy['INIT']), blinking_n / time_constant, time_blinked / time_constant)
         print("[INFO] Classifier Thread Closed")
 
     def stop(self):
