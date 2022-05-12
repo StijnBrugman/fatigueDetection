@@ -42,7 +42,7 @@ class Acquisition(threading.Thread):
 
 
     def run(self):
-        print("[INFO] Connection Acquisition is established")
+        print("[INFO] Acquisition Thread Opened")
 
         files = glob.glob('/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/*')
         for f in files:
@@ -117,6 +117,7 @@ class Acquisition(threading.Thread):
             
             #print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()
+        print("[INFO] Acquisition Thread Closed")
         
     def frame_accisible(self):
         return self.accesible

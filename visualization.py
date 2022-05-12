@@ -12,9 +12,8 @@ import threading
 # Interactive mode
 plt.ion()
 
-class Visualization(threading.Thread):
+class Visualization():
     def __init__(self):
-        threading.Thread.__init__(self)
         self.running = True
 
         self.figure = plt.figure(figsize=(8,8))
@@ -37,11 +36,9 @@ class Visualization(threading.Thread):
 
     def run(self):
         print("[INFO] Visualization Thread setup")
-        while self.running:
-            # self.anim = animation.FuncAnimation(self.figure, self._update, interval=1000, blit = False)
-            # plot = plt.show(block = False)
-            # plt.pause(.00001)
-            pass
+        self.anim = animation.FuncAnimation(self.figure, self._update, interval=1000, blit = False)
+        plot = plt.show(block = False)
+        plt.pause(.00001)
     
     # def stop(self):
     #     self.running = False

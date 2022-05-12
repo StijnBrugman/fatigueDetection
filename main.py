@@ -6,6 +6,7 @@ from Acquisition import Acquisition
 from visualization import Visualization
 from processing import Processing
 from parser import Parser
+from classifier import Classifier
 
 import sys, time
 import keyboard
@@ -22,13 +23,16 @@ if __name__ == '__main__':
     parser = Parser()
 
     vis = Visualization()
-    if parser.get_arg('vis'):
-            vis.start()
+    
 
     acq = Acquisition()
     acq.start()
 
+    cls = Classifier()
+    cls.start()
+
     prs = Processing()
+
 
     
 
@@ -45,13 +49,18 @@ if __name__ == '__main__':
                     prs.update(acq.get_from_buffer())
                     EAR_data = prs.get_from_buffer('EAR')
                     vis.update(EAR_data)
-                    print(prs.y_values)
+                    cls.set_data('EAR', EAR_data)
+                    # print(prs.y_values)
             
             if prs.buffer_availble('BLINK'):
                     BLINK_data = prs.get_from_buffer('BLINK')
                     print(BLINK_data)
                     vis.update_BLINK(BLINK_data)
+                    cls.set_data('BLINK', BLINK_data)
             
+            if parser.get_arg('vis'):
+                vis.run()
+
             if acq.frame_accisible() and parser.get_arg('cam'):
                 frame = acq.get_frame()
                 cv2.imshow("Frame", frame)
@@ -62,11 +71,16 @@ if __name__ == '__main__':
             if keyboard.is_pressed('q'):
                 break
     except KeyboardInterrupt:
-        pass
+        print("[Warning] Non-safe exiting, use 'q' to exit the program")
     
     print("[INFO] Exiting program")
     acq.safe_frames(prs.x_values['BLINK'])
+
+    # Quiting additional threads
     acq.stop()
+    cls.stop()
+
+    # Closing all windows
     cv2.destroyAllWindows()
     sys.exit()
 
