@@ -15,6 +15,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+
 if __name__ == '__main__':
     '''
     Setup
@@ -33,11 +34,6 @@ if __name__ == '__main__':
 
     prs = Processing()
 
-
-    
-
-    
-
     cv2.namedWindow("frame")
 
     acq.set_setting(parser.get_arg('safe'))
@@ -54,7 +50,6 @@ if __name__ == '__main__':
             
             if prs.buffer_availble('BLINK'):
                     BLINK_data = prs.get_from_buffer('BLINK')
-                    print(BLINK_data)
                     vis.update_BLINK(BLINK_data)
                     cls.set_data('BLINK', BLINK_data)
             
@@ -65,7 +60,7 @@ if __name__ == '__main__':
                 frame = acq.get_frame()
                 cv2.imshow("Frame", frame)
 
-            FPS = 1.0 / (time.time()-current_time +0.00001)
+            # FPS = 1.0 / (time.time() - current_time)
             # print("[INFO] Framerate Main-Threat is: {}".format(FPS))
             
             if keyboard.is_pressed('q'):

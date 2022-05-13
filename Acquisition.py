@@ -50,7 +50,9 @@ class Acquisition(threading.Thread):
         
         print("[INFO] All old frames have been removed")
 
-        
+        self.timer = time.time()
+        FPS_array = np.array([])
+
         
         while self.running:
             start_time = time.time()
@@ -113,7 +115,13 @@ class Acquisition(threading.Thread):
             self.accesible = True
                 # self.buffer.append(self.eye_landmarks)
             # cv2.imshow("Frame", frame)
-            FPS = 1 / (time.time() - start_time)
+            
+            if time.time() - self.timer > 5: 
+                self.timer = time.time()
+                
+                FPS = 1 / (time.time() - start_time)
+                FPS_array = np.append(FPS_array, FPS)
+                print("[INFO] Framerate Acquisition-Threat is: {}".format(np.average(FPS_array[-50:])))
             
             #print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()

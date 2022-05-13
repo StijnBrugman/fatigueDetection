@@ -3,6 +3,10 @@ PROMINENCE = 0.12
 INIT_TIME = 30
 PERCLOS_TIME_INTERVAL = 30
 
+FATIGUE_LEVELS = [
+    "Alert", "Rather Alert", "Lightly sleepy", "Sleepy", "Very Sleepy", "Extremely Sleepy"
+]
+
 """
 TRESHOLDS
 0.12698828492177355 5.480700703217706 0.02744628738639148
