@@ -84,7 +84,7 @@ class Classifier(threading.Thread):
             # Printing every ... second
             if time.time() - self.print_timer > .5:
                 # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
-                print(self.current_message)
+                # sprint(self.current_message)
                 self.print_timer = time.time()
                 #  print(self.TRESHOLDS)
         print("[INFO] Classifier Thread Closed")
