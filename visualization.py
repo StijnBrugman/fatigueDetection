@@ -35,7 +35,7 @@ class Visualization():
         self.running = False
 
     def run(self):
-        print("[INFO] Visualization Thread setup")
+        # print("[INFO] Visualization Thread setup")
         self.anim = animation.FuncAnimation(self.figure, self._update, interval=1000, blit = False)
         plot = plt.show(block = False)
         plt.pause(.00001)

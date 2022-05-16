@@ -32,7 +32,6 @@ class Processing():
 
         self.add_to_buffer('EAR', (timestamp, EAR))
 
-
         # Blink segment
         index, properties = self.find_blinks()
 
@@ -52,6 +51,7 @@ class Processing():
             print("[DATA] Blink Detected with duration: {}s".format(self.y_values['BLINK'][-1]['right']-self.y_values['BLINK'][-1]['left']))
 
     def find_blinks(self):
+        # print(self.y_values['EAR'])
         index, properties = find_peaks(self.y_values['EAR'][-1000:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
         
         # Prevents the shifting index from incrementing the blinking frequency
@@ -80,9 +80,3 @@ class Processing():
     def distance(l1, l2):
         return np.linalg.norm(l1 - l2)
     
-#     EAR_left = (compute(landmarks[37], landmarks[41]) + compute(landmarks[38], landmarks[40]))/(2*compute(landmarks[36],landmarks[39]))
-#     EAR_right = (compute(landmarkqqqs[43],landmarks[47]) + compute(landmarks[44],landmarks[46]))/(2*compute(landmarks[42],landmarks[45]))
-#     # print(EAR_left, EAR_right)
-#     #EAR_left = (compute(landmarks[38], landmarks[42]) + compute(landmarks[39], landmarks[41]))/(2*compute(landmarks[37],landmarks[40]))
-#     #EAR_right = (compute(landmarks[44],landmarks[48]) + compute(landmarks[45],landmarks[47]))/(2*compute(landmarks[43],landmarks[46]))
-#     EAR = (EAR_left + EAR_right) / 2

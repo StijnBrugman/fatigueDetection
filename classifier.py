@@ -2,11 +2,11 @@ from cv2 import threshold
 import numpy as np
 import time
 import threading
-from Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS
+from Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS
 
 class Classifier(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, mode = 'INIT'):
         threading.Thread.__init__(self)
         self.running = True
 
@@ -39,30 +39,31 @@ class Classifier(threading.Thread):
             'RUN': np.array([0])
         }
 
-        self.TRESHOLDS = {
-            'entropy': 0,
-            'blink': 0,
-            'perclos': 0
-        }
+        self.TRESHOLDS = TRESHOLDS
 
         self.init_phase_done = False
 
-        self.classifying_times = [40, 20, 10, 5]
-        self.classifying_tresholds = [70, 60, 50]
+        self.classifying_times = [60, 45, 25, 5]
+        self.classifying_tresholds = [70, 55, 35]
         self.fatigue_message = FATIGUE_LEVELS
+
         self.fatigue_values = np.array([])
+        self.fatigue_time =  np.array([])
 
         self.current_message = self.fatigue_message[0]
         self.previous_message = None
 
         (self.old_PERCLOS, self.old_n_blink) = (None, None)
 
+        self.mode = mode
+
+        self.old_fatigue_level = None
+
         
 
     def run(self):
         print("[INFO] Classifier thread Opened")
         
-
         while self.running:
             key = 'RUN'
 
@@ -81,15 +82,16 @@ class Classifier(threading.Thread):
             self.update_parameters(PERCLOS, n_blink, key)
 
             # Printing every ... second
-            if time.time() - self.print_timer > 5:
-                print(np.average(self.fatigue_values[-200:]))
+            if time.time() - self.print_timer > .5:
+                # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
+                print(self.current_message)
                 self.print_timer = time.time()
                 #  print(self.TRESHOLDS)
         print("[INFO] Classifier Thread Closed")
 
     def update_parameters(self, PERCLOS, n_blink, key):
-        
-        if time.time() - self.timer > .5:
+        # print(len(self.data['EAR']['y']))
+        if time.time() - self.timer > .5 and len(self.data['EAR']['y']) > 200:
                 self.timer = time.time()
                 modified_list = np.round(self.data['EAR']['y'][-200:] * 100, decimals= 2)
                 entropy = self.appr_entropy(modified_list, 2, 3)
@@ -120,34 +122,109 @@ class Classifier(threading.Thread):
             # (self.old_PERCLOS, self.old_n_blink) =  (PERCLOS, n_blink)
 
             # print(self.n_blink[key][-1], self.perclos[key][-1], self.entropy[key][-1])
+
+            # Only adding a fatigue_level if it has changed
             fatigue_level = self.fuzzy_based_classification()
-            self.fatigue_values = np.append(self.fatigue_values, fatigue_level)
+            time_stamp = time.time() - self.start_time
+            if self.old_fatigue_level != fatigue_level: 
+                self.fatigue_values = np.append(self.fatigue_values, fatigue_level)
+                self.fatigue_time = np.append(self.fatigue_time, time_stamp)
+            self.old_fatigue_level = fatigue_level
 
             """
             self.classifying_times = [5, 10, 20, 40]
             self.classifying_tresholds = [50, 60, 70]
             """
 
-            
+            # TODO: Get the correct fatigue values over time
             # print(self.fatigue_values[-1])
+            message_set = False
+
+            fatigue_dict = {}
+            for value in self.classifying_times:
+                fatigue_dict[value] = 0
+
+            
+
+            if len(self.fatigue_values) < 1: return
+            self.fatigue_level_index = 0
             for i, time_index in enumerate(self.classifying_times):
-                average_fatigue = np.average(self.fatigue_values[- time_index * 30:])
-                for j, threshold in enumerate(self.classifying_tresholds):
-                    if average_fatigue > threshold:
-                        fatigue_level_index = 5 - i -j
-                        self.current_message = self.fatigue_message[fatigue_level_index]
-                        break
-                else:
-                    continue
-                break
+                time_treshold = time.time() - self.start_time - time_index
+
+                # print(self.fatigue_time, time_treshold)
+
+                try:
+                    list_index = next(x for x, val in enumerate(self.fatigue_time) if val > time_treshold)
+                except StopIteration:
+                    break
+                
+                # print(time_treshold, list_index)
+                fatigue_list = self.fatigue_values[list_index:]
+                
+                # print(fatigue_list)
+                average_fatigue = np.average(fatigue_list)
+                fatigue_dict[time_index] = average_fatigue
+
+                # for j, threshold in enumerate(self.classifying_tresholds):
+                #     if average_fatigue > threshold:
+                #         message_set = True
+                        
+                #         self.fatigue_level_index = 6 - i -j
+                #         print(average_fatigue, self.fatigue_level_index)
+                #         self.current_message = self.fatigue_message[self.fatigue_level_index]
+                #         break
+                # else:
+                #     continue
+                # break
+            # print(fatigue_dict)
+
+            index = self.classify_case_statement(fatigue_dict)
+            self.current_message = self.fatigue_message[index]
+            
+            # if not message_set: self.current_message = self.fatigue_message[0]
 
             if self.current_message !=  self.previous_message:
                 print("[INFO] Fatigue level: {} ".format(self.current_message))  
             
             self.previous_message = self.current_message
+        
+    def create_true_table(self, fatigue_dict):
+        table = []
+        for i, key in enumerate(fatigue_dict):
+            row = []
+            for j, threshold in enumerate(self.classifying_tresholds):
+                if fatigue_dict[key] > threshold:
+                    row.append(6 - i - j)
+                else:
+                    row.append(-1)
+            table.append(row)
+        
+        
+        # table = np.delete(table, 0)
+        return table
             
+    def classify_case_statement(self, fatigue_dict):
+        index = 0
+
+        table = self.create_true_table(fatigue_dict)
+        table = np.array(table)
+
+        # table = np.arange(np.prod(table)).reshape(table)
+        out = np.hstack([table[::-1].diagonal(offset=x) \
+                for x in np.arange(-len(table)+1,len(table[0]))])
+        # print(table,out)
+
+        for value in out:
             
-                        
+            if value != -1:
+                # print(value, out)
+                return value
+        
+        return index
+
+    def extract_list(self, l):
+        print(l)
+        return [item[0] for item in l]
 
     def stop(self):
         self.running = False
@@ -179,11 +256,13 @@ class Classifier(threading.Thread):
         # print(value_1, value_2, value_3)
 
         # value between 0 - 100 indicating how fatigued a person is
+        # print(value_1, value_2, value_3)
         return value_1 + value_2 + value_3
 
 
     def initialzed(self):
-        return (time.time() - self.start_time) > INIT_TIME
+        # if self.mode: self.TRESHOLDS = TRESHOLDS
+        return ((time.time() - self.start_time) > INIT_TIME) or self.mode
     
     def calc_PERCLOS(self, time_interval = 30):
         current_time = time.time() - self.start_time

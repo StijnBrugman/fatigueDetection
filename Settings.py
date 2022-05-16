@@ -3,6 +3,9 @@ PROMINENCE = 0.12
 INIT_TIME = 30
 PERCLOS_TIME_INTERVAL = 30
 
+RUN_MODE = 0
+INIT_MODE = 1
+
 FATIGUE_LEVELS = [
     "Alert", "Rather Alert", "Lightly sleepy", "Sleepy", "Very Sleepy", "Extremely Sleepy"
 ]
@@ -12,3 +15,5 @@ TRESHOLDS
 0.12698828492177355 5.480700703217706 0.02744628738639148
 
 """
+
+TRESHOLDS = {'entropy': 0.2157033897764824, 'blink': 6.981554633352065, 'perclos': 0.04874875609450755}     
