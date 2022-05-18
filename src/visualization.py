@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 import pandas as pd
 import time
 
-from Settings import PLOTTING_SIZE, PROMINENCE
+from src.Settings import PLOTTING_SIZE, PROMINENCE
 
 from scipy.signal import lfilter, savgol_filter, filtfilt, butter, find_peaks
 import threading

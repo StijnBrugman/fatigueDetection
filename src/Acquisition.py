@@ -16,6 +16,7 @@ class Acquisition(threading.Thread):
 
         #Initializing the camera and taking the instance
         self.camera = cv2.VideoCapture(0)
+        self.camera.set(cv2.CAP_PROP_FPS, 30)
 
         #Initializing the face detector and landmark detector
         self.detector = dlib.get_frontal_face_detector()

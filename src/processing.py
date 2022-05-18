@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import find_peaks
-from Settings import PROMINENCE
+from src.Settings import PROMINENCE
 
 
 class Processing():

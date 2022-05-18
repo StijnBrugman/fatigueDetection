@@ -7,10 +7,6 @@ class Parser():
         parser.add_argument('-v', '--vis', action='store_true', help='turn on graph visualization')
         parser.add_argument('-s', '--safe', action='store_true', help='safe obtained images')
         self.args = vars(parser.parse_args())
-        # print("[INFO] Parser Options")
-        # parser.print_help() 
-        # print()
-        # print(self.args)
     
     def get_arg(self, arg):
         return self.args.get(arg)

@@ -1,17 +1,16 @@
 #Importing OpenCV Library for basic image processing functions
 import cv2
 
-from Acquisition import Acquisition
+from src.Acquisition import Acquisition
 
-from visualization import Visualization
-from processing import Processing
-from parser import Parser
-from classifier import Classifier
-
-from Settings import RUN_MODE, INIT_MODE
+from src.visualization import Visualization
+from src.processing import Processing
+from src.parser import Parser
+from src.classifier import Classifier
+from src.datastorage import Datastorage
+from src.Settings import RUN_MODE, INIT_MODE
 
 import sys, time
-import keyboard
 
 import warnings
 # warnings.filterwarnings("ignore")
@@ -68,14 +67,14 @@ if __name__ == '__main__':
 
             # FPS = 1.0 / (time.time() - current_time)
             # print("[INFO] Framerate Main-Threat is: {}".format(FPS))
-            
-            if keyboard.is_pressed('q'):
-                break
+
     except KeyboardInterrupt:
-        print("[Warning] Non-safe exiting, use 'q' to exit the program")
-    
-    print("[INFO] Exiting program")
-    acq.safe_frames(prs.x_values['BLINK'])
+        print("[INFO] Exiting program initiated")
+
+    if parser.get_arg('safe'):
+        acq.safe_frames(prs.x_values['BLINK'])
+
+        print("[INFO] Files have been safed")
 
     # Quiting additional threads
     acq.stop()
