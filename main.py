@@ -23,21 +23,19 @@ if __name__ == '__main__':
     '''
 
     parser = Parser()
+    ds = Datastorage()
 
     if parser.get_arg('vis'): vis = Visualization()
     
-
     acq = Acquisition()
     acq.start()
-
     cls = Classifier(mode=INIT_MODE)
     cls.start()
-
     prs = Processing()
 
-    cv2.namedWindow("frame")
 
     acq.set_setting(parser.get_arg('safe'))
+
     try:
         while True:
             current_time = time.time()
@@ -59,6 +57,7 @@ if __name__ == '__main__':
                     if parser.get_arg('vis'):
                         vis.update_BLINK(BLINK_data)
                         vis.run()
+            
 
             if acq.frame_accisible() and parser.get_arg('cam'):
                 frame = acq.get_frame()
@@ -73,6 +72,12 @@ if __name__ == '__main__':
 
     if parser.get_arg('safe'):
         acq.safe_frames(prs.x_values['BLINK'])
+
+        ds.set_data('EAR', cls.data['EAR']['x'], cls.data['EAR']['y'])
+        ds.set_data('Blink', cls.data['BLINK']['x'], cls.get_blink())
+        ds.set_data('Entropy', [],  cls.entropy['RUN'])
+        ds.set_data('Fatigue', cls.fatigue_time, cls.fatigue_values)
+        ds.safe_data()
 
         print("[INFO] Files have been safed")
 

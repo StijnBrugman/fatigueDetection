@@ -59,10 +59,11 @@ class Classifier(threading.Thread):
             self.update_parameters(PERCLOS, n_blink, key)
 
             # Print segment
-            if time.time() - self.print_timer > 2:
+            if time.time() - self.print_timer > 5:
                 # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
                 self.print_timer = time.time()
-                print(self.truth_table, self.fatigue_dict)
+                # print(self.fatigue_values)
+                # print(self.truth_table, self.fatigue_dict)
         
         print("[INFO] Classifier Thread Closed")
 
@@ -162,6 +163,13 @@ class Classifier(threading.Thread):
 
     def stop(self):
         self.running = False
+    
+    def get_blink(self):
+        for data_points in self.data['BLINK']['y']:
+            print(data_points)
+        return [data_points['y'] for data_points in self.data['BLINK']['y']]
+
+
     
     def set_data(self, type, data):
         x, y = data
