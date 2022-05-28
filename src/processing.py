@@ -52,11 +52,11 @@ class Processing():
 
     def find_blinks(self):
         # print(self.y_values['EAR'])
-        index, properties = find_peaks(self.y_values['EAR'][-1000:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
+        index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
         
         # Prevents the shifting index from incrementing the blinking frequency
         len_y = len(self.y_values['EAR'])
-        if len_y > 1000: index += len_y - 1000
+        if len_y > 100: index += len_y - 100
         # print((index, properties))
         return index, properties
 

@@ -113,7 +113,8 @@ class Acquisition(threading.Thread):
                 
                 FPS = 1 / (time.time() - start_time)
                 FPS_array = np.append(FPS_array, FPS)
-                print("[INFO] Framerate Acquisition-Threat is: {}".format(np.average(FPS_array[-50:])))
+                FPS_array = FPS_array[-50:]
+                print("[INFO] Framerate Acquisition-Threat is: {}".format(np.average(FPS_array)))
             
             #print("[INFO] Framerate Acquistion-Thread is: {}".format(FPS))
         self.camera.release()

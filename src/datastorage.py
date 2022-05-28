@@ -2,30 +2,43 @@ from itertools import zip_longest
 from re import S
 import numpy as np
 import csv
+from datetime import datetime
+import time
+from json import dumps
+
+
 
 class Datastorage():
     def __init__(self):
-        data_types = ['EAR', 'Blink', 'Entropy', 'Fatigue']
+        data_types = ['EAR', 'Blink', 'Blink_n', 'Perclos', 'Entropy', 'Fatigue', 'Fatigue_Message']
         self.data_dict = self.create_data_dict(data_types)
         
     def set_data(self, type, x, y):
         self.data_dict[type]['x'] = x
         self.data_dict[type]['y'] = y
     
-    def safe_data(self):
-        file_name = "data_output_{}".format("test")
+    def safe_data(self, thresholds):
+        # Creating file name
+        date_time = datetime.fromtimestamp(time.time())
+        str_date_time = date_time.strftime("%d-%m-%Y|%H:%M:%S")
+
+        file_name = "data/data_output_{}".format(str_date_time)
         _fieldnames = self.create_field_names()
 
         columns_data = self.get_columns()
-        with open(file_name, 'w') as file_name:
-            writer = csv.writer(file_name)
+        with open(file_name, 'w') as f:
+            writer = csv.writer(f)
             writer.writerow(_fieldnames)
             
             column_list = []
             for column in columns_data:
                 column_list.append(list(column))
-            print(column_list)
             writer.writerows(column_list)
+        
+        file_name = "data/tresholds_{}.txt".format(str_date_time)
+        with open(file_name, 'w') as f:
+            f.write(dumps(thresholds))
+
 
     def create_data_dict(self, types):
         data_dict = {}
@@ -49,4 +62,5 @@ class Datastorage():
             for column in ['x','y']:
                 columns.append(self.data_dict[key][column])
         return zip_longest(*columns)
+
         

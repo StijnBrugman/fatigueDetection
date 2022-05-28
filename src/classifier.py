@@ -2,7 +2,7 @@ from cv2 import threshold
 import numpy as np
 import time
 import threading
-from src.Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS
+from src.Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS, CLASS_WEIGHT
 
 class Classifier(threading.Thread):
 
@@ -15,6 +15,11 @@ class Classifier(threading.Thread):
         self.n_blink = {'INIT': np.array([0]), 'RUN': np.array([0])}
         self.perclos = {'INIT': np.array([0]), 'RUN': np.array([0])}
 
+        # TODO: This should be a proper strucutre and not this
+        self.entropy_time = np.array([0])
+        self.perclos_time = np.array([0])
+        self.blink_n_time = np.array([0])
+
         self.timer = time.time()
         self.start_time = time.time()
         self.print_timer = 0
@@ -23,19 +28,27 @@ class Classifier(threading.Thread):
         self.classifying_times =        CLASS_TIMES
         self.classifying_tresholds =    CLASS_TRESHOLDS
         self.fatigue_message =          FATIGUE_LEVELS
+        self.class_weights =            CLASS_WEIGHT
 
         self.fatigue_dict = {key :  0 for key in self.classifying_times}
-        self.fatigue_values = np.array([])
-        self.fatigue_time =  np.array([])
+        self.fatigue_values = np.array([0])
+        self.fatigue_time =  np.array([0])
 
         self.current_message = self.fatigue_message[0]
         self.previous_message = None
+
+        self.old_perclos = 0
+        self.old_n_blink = 0
+
+        self.fatigue_messages = {'x': [], 'y': []}
 
 
         self.mode = mode
 
         self.old_fatigue_level = None
         self.truth_table = []
+
+        self.index = None
     
     def run(self):
         print("[INFO] Classifier thread Opened")
@@ -43,6 +56,7 @@ class Classifier(threading.Thread):
 
         key = 'RUN'
         init_phase_done = False
+        
 
         while self.running:
             
@@ -53,17 +67,17 @@ class Classifier(threading.Thread):
             if not init_phase_done and self.initialzed(): 
                 print("[INFO] INIT-Phase done. Treshold paramters are: {}".format(self.TRESHOLDS))
                 init_phase_done = True
+                key = 'RUN'
             
             # Running phase
             (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
             self.update_parameters(PERCLOS, n_blink, key)
 
             # Print segment
-            if time.time() - self.print_timer > 5:
+            if time.time() - self.print_timer > 1:
                 # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
                 self.print_timer = time.time()
-                # print(self.fatigue_values)
-                # print(self.truth_table, self.fatigue_dict)
+                # print(self.truth_table, self.fatigue_dict, self.index)
         
         print("[INFO] Classifier Thread Closed")
 
@@ -72,13 +86,24 @@ class Classifier(threading.Thread):
         # Only run 2 times a second, and when enough data it present
         if time.time() - self.timer > .5 and len(self.data['EAR']['y']) > 100:
                 self.timer = time.time()
-                modified_list = np.round(self.data['EAR']['y'][-500:] * 100, decimals= 2)
+                modified_list = np.round(self.data['EAR']['y'][-100:] * 100, decimals= 2)
                 entropy = self.appr_entropy(modified_list, 2, 3)
 
                 self.entropy[key] = np.append(self.entropy[key], entropy)
-        self.n_blink[key] = np.append(self.n_blink[key], n_blink)
-        self.perclos[key] = np.append(self.perclos[key], PERCLOS)
+                self.entropy_time =np.append(self.entropy_time, time.time() - self.start_time)
 
+        timestamp = time.time() - self.start_time
+
+        if self.old_n_blink != n_blink:
+            self.old_n_blink = n_blink
+            self.n_blink[key] = np.append(self.n_blink[key], n_blink)
+            self.blink_n_time = np.append(self.blink_n_time, timestamp)
+
+        # TODO: Not a good quick fix
+        if self.old_perclos != PERCLOS:
+            self.old_perclos = PERCLOS
+            self.perclos[key] = np.append(self.perclos[key], PERCLOS)
+            self.perclos_time = np.append(self.perclos_time, timestamp)
         # Updating the INIT_TRESHOLDS 
         time_stamp = time.time() - self.start_time
         if key == 'INIT':
@@ -119,10 +144,12 @@ class Classifier(threading.Thread):
                 average_fatigue = np.average(fatigue_list)
                 self.fatigue_dict[time_index] = average_fatigue
 
-            index = self.classify_case_statement()
-            self.current_message = self.fatigue_message[index]
+            self.index = self.classify_case_statement()
+            self.current_message = self.fatigue_message[self.index]
 
             if self.current_message !=  self.previous_message:
+                self.fatigue_messages['x'].append(time_stamp)
+                self.fatigue_messages['y'].append(self.current_message)
                 print("[INFO] Fatigue level: {} ".format(self.current_message))  
             
             self.previous_message = self.current_message
@@ -140,7 +167,7 @@ class Classifier(threading.Thread):
             row = []
             for j, threshold in enumerate(self.classifying_tresholds):
                 if self.fatigue_dict[key] > threshold:
-                    row.append(6 - i - j)
+                    row.append(5 - i - j)
                 else:
                     row.append(-1)
             table.append(row)
@@ -166,7 +193,8 @@ class Classifier(threading.Thread):
     
     def get_blink(self):
         for data_points in self.data['BLINK']['y']:
-            print(data_points)
+            # print(data_points)
+            pass
         return [data_points['y'] for data_points in self.data['BLINK']['y']]
 
 
@@ -179,15 +207,15 @@ class Classifier(threading.Thread):
     def fuzzy_based_classification(self):
         # Blinking
         percentage = self.n_blink['RUN'][-1] / self.TRESHOLDS['blink']
-        value_1 = self.mapping(percentage, 0.5, 3, 0, 20)
+        value_1 = self.mapping(percentage, 1, 2, 0, self.class_weights['blink'])
         
         # Entropy
         entropy = self.entropy['RUN'][-1] / self.TRESHOLDS['entropy']
-        value_2 = self.mapping(entropy, 0.5, 2, 0, 40)
+        value_2 = self.mapping(entropy, 1, 2, 0, self.class_weights['entropy'])
         
         # PERCLOS
         perclos = self.perclos['RUN'][-1] / self.TRESHOLDS['perclos']
-        value_3 = self.mapping(perclos, 0.5, 3, 0, 40)
+        value_3 = self.mapping(perclos, 1, 2, 0, self.class_weights['perclos'])
         return value_1 + value_2 + value_3
 
     def initialzed(self):

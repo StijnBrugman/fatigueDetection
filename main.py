@@ -70,16 +70,22 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("[INFO] Exiting program initiated")
 
+    # TODO: Make this better LOL
     if parser.get_arg('safe'):
+        print("[INFO] Safing data started")
         acq.safe_frames(prs.x_values['BLINK'])
 
         ds.set_data('EAR', cls.data['EAR']['x'], cls.data['EAR']['y'])
         ds.set_data('Blink', cls.data['BLINK']['x'], cls.get_blink())
-        ds.set_data('Entropy', [],  cls.entropy['RUN'])
+        ds.set_data('Blink_n', cls.blink_n_time, cls.n_blink['RUN'])
+        ds.set_data('Perclos', cls.perclos_time,  cls.perclos['RUN'])
+        ds.set_data('Entropy', cls.entropy_time,  cls.entropy['RUN'])
         ds.set_data('Fatigue', cls.fatigue_time, cls.fatigue_values)
-        ds.safe_data()
+        ds.set_data('Fatigue_Message', cls.fatigue_messages['x'], cls.fatigue_messages['y'])
+        ds.safe_data(cls.TRESHOLDS)
 
-        print("[INFO] Files have been safed")
+
+        print("[INFO] Data has been safed")
 
     # Quiting additional threads
     acq.stop()
