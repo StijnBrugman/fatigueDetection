@@ -16,7 +16,7 @@ class Acquisition(threading.Thread):
 
         #Initializing the camera and taking the instance
         self.camera = cv2.VideoCapture(0)
-        self.camera.set(cv2.CAP_PROP_FPS, 30)
+        self.camera.set(cv2.CAP_PROP_FPS, 40)
 
         #Initializing the face detector and landmark detector
         self.detector = dlib.get_frontal_face_detector()
@@ -108,7 +108,7 @@ class Acquisition(threading.Thread):
                 # self.buffer.append(self.eye_landmarks)
             # cv2.imshow("Frame", frame)
             
-            if time.time() - self.timer > 5: 
+            if time.time() - self.timer > 20: 
                 self.timer = time.time()
                 
                 FPS = 1 / (time.time() - start_time)
@@ -148,7 +148,7 @@ class Acquisition(threading.Thread):
         if not self.safe: return
         for time in frames_index:
             index = str("{:.2f}".format(time))
-            file_name = "/Users/stijnbrugman/PycharmProjects/fatigueDetection/frames/" + "frame[{}].png".format(index)
+            file_name = "C:/Users/JohnBrugman/fatigueDetection/frames/" + "frame[{}].png".format(index)
             cv2.imwrite(file_name, self.frames.get(index))
         print("[INFO] Frames have been saved")
 

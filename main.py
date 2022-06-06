@@ -5,7 +5,7 @@ from src.Acquisition import Acquisition
 
 from src.visualization import Visualization
 from src.processing import Processing
-from src.parser import Parser
+from src.parser1 import Parser
 from src.classifier import Classifier
 from src.datastorage import Datastorage
 from src.Settings import RUN_MODE, INIT_MODE
@@ -24,14 +24,15 @@ if __name__ == '__main__':
 
     parser = Parser()
     ds = Datastorage()
+    prs = Processing()
 
     if parser.get_arg('vis'): vis = Visualization()
     
     acq = Acquisition()
     acq.start()
-    cls = Classifier(mode=INIT_MODE)
-    cls.start()
-    prs = Processing()
+    cls = Classifier(mode=RUN_MODE)
+    # cls.start()
+    
 
 
     acq.set_setting(parser.get_arg('safe'))
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     try:
         while True:
             current_time = time.time()
-
+            
             if acq.buffer_availble():
                     prs.update(acq.get_from_buffer())
                     EAR_data = prs.get_from_buffer('EAR')
@@ -64,6 +65,7 @@ if __name__ == '__main__':
                 cv2.imshow("Frame", frame)
                 cv2.waitKey(1)
 
+            cls._run()
             # FPS = 1.0 / (time.time() - current_time)
             # print("[INFO] Framerate Main-Threat is: {}".format(FPS))
 
@@ -75,7 +77,7 @@ if __name__ == '__main__':
         print("[INFO] Safing data started")
         acq.safe_frames(prs.x_values['BLINK'])
 
-        ds.set_data('EAR', cls.data['EAR']['x'], cls.data['EAR']['y'])
+        # ds.set_data('EAR', cls.data['EAR']['x'], cls.data['EAR']['y'])
         ds.set_data('Blink', cls.data['BLINK']['x'], cls.get_blink())
         ds.set_data('Blink_n', cls.blink_n_time, cls.n_blink['RUN'])
         ds.set_data('Perclos', cls.perclos_time,  cls.perclos['RUN'])

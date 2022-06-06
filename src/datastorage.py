@@ -10,7 +10,7 @@ from json import dumps
 
 class Datastorage():
     def __init__(self):
-        data_types = ['EAR', 'Blink', 'Blink_n', 'Perclos', 'Entropy', 'Fatigue', 'Fatigue_Message']
+        data_types = ['Blink', 'Blink_n', 'Perclos', 'Entropy', 'Fatigue', 'Fatigue_Message']
         self.data_dict = self.create_data_dict(data_types)
         
     def set_data(self, type, x, y):
@@ -20,9 +20,9 @@ class Datastorage():
     def safe_data(self, thresholds):
         # Creating file name
         date_time = datetime.fromtimestamp(time.time())
-        str_date_time = date_time.strftime("%d-%m-%Y|%H:%M:%S")
+        str_date_time = date_time.strftime("%d_%m_%Y_%H_%M_%S")
 
-        file_name = "data/data_output_{}".format(str_date_time)
+        file_name = r"C:/Users/JohnBrugman/fatigueDetection/data/data_output_{}.csv".format(str_date_time)
         _fieldnames = self.create_field_names()
 
         columns_data = self.get_columns()
@@ -35,7 +35,7 @@ class Datastorage():
                 column_list.append(list(column))
             writer.writerows(column_list)
         
-        file_name = "data/tresholds_{}.txt".format(str_date_time)
+        file_name = r"C:/Users/JohnBrugman/fatigueDetection/data/tresholds_{}.txt".format(str_date_time)
         with open(file_name, 'w') as f:
             f.write(dumps(thresholds))
 
