@@ -3,7 +3,7 @@ import numpy as np
 import time, csv
 import threading
 from datetime import datetime
-from src.Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS, CLASS_WEIGHT
+from src.Settings import ABS_PATH, INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS, CLASS_WEIGHT
 
 class Classifier():
 
@@ -58,7 +58,7 @@ class Classifier():
 
         date_time = datetime.fromtimestamp(time.time())
         str_date_time = date_time.strftime("%d_%m_%Y_%H_%M_%S")
-        self.file_name =  r"C:/Users/JohnBrugman/fatigueDetection/data/data_output_EAR_{}.csv".format(str_date_time)
+        self.file_name = ABS_PATH +  r"/data/data_output_EAR_{}.csv".format(str_date_time)
         
     
     def _run(self):

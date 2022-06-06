@@ -5,6 +5,7 @@ import csv
 from datetime import datetime
 import time
 from json import dumps
+from Settings import ABS_PATH
 
 
 
@@ -22,7 +23,7 @@ class Datastorage():
         date_time = datetime.fromtimestamp(time.time())
         str_date_time = date_time.strftime("%d_%m_%Y_%H_%M_%S")
 
-        file_name = r"C:/Users/JohnBrugman/fatigueDetection/data/data_output_{}.csv".format(str_date_time)
+        file_name = ABS_PATH + r"/data/data_output_{}.csv".format(str_date_time)
         _fieldnames = self.create_field_names()
 
         columns_data = self.get_columns()
@@ -35,7 +36,7 @@ class Datastorage():
                 column_list.append(list(column))
             writer.writerows(column_list)
         
-        file_name = r"C:/Users/JohnBrugman/fatigueDetection/data/tresholds_{}.txt".format(str_date_time)
+        file_name = ABS_PATH + r"/data/tresholds_{}.txt".format(str_date_time)
         with open(file_name, 'w') as f:
             f.write(dumps(thresholds))
 

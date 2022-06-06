@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import find_peaks
-from src.Settings import PROMINENCE
+from src.Settings import PROMINENCE, BLINK_WIDTH
 
 
 class Processing():
@@ -52,7 +52,7 @@ class Processing():
 
     def find_blinks(self):
         # print(self.y_values['EAR'])
-        index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=0.2)
+        index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=BLINK_WIDTH)
         
         # Prevents the shifting index from incrementing the blinking frequency
         len_y = len(self.y_values['EAR'])
