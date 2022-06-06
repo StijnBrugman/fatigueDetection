@@ -5,7 +5,7 @@ import csv
 from datetime import datetime
 import time
 from json import dumps
-from Settings import ABS_PATH
+from src.Settings import ABS_PATH
 
 
 
