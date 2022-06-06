@@ -1,13 +1,14 @@
 from cv2 import threshold
 import numpy as np
-import time
+import time, csv
 import threading
+from datetime import datetime
 from src.Settings import INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS, CLASS_WEIGHT
 
-class Classifier(threading.Thread):
+class Classifier():
 
     def __init__(self, mode = 'INIT'):
-        threading.Thread.__init__(self)
+        # threading.Thread.__init__(self)
         self.running = True
         
         self.data = {'EAR': {'x': np.array([]),'y': np.array([]),}, 'BLINK':{ 'x': np.array([]),'y': np.array([]),}}
@@ -49,6 +50,47 @@ class Classifier(threading.Thread):
         self.truth_table = []
 
         self.index = None
+
+        self.key = 'INIT'
+        self.init_phase_done = False
+        
+        self.timers = [0, 0, 0]
+
+        date_time = datetime.fromtimestamp(time.time())
+        str_date_time = date_time.strftime("%d_%m_%Y_%H_%M_%S")
+        self.file_name =  r"C:/Users/JohnBrugman/fatigueDetection/data/data_output_EAR_{}.csv".format(str_date_time)
+        
+    
+    def _run(self):
+        # INIT phase
+        if not self.initialzed():  self.key = 'INIT'
+
+        
+
+        if not self.init_phase_done and self.initialzed(): 
+            print("[INFO] INIT-Phase done. Treshold paramters are: {}".format(self.TRESHOLDS))
+            self.init_phase_done = True
+            self.key = 'RUN'
+        
+        
+        # Running phase
+        
+        start_time = time.time()
+        (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
+        self.timers[0] = time.time() - start_time
+
+        start_time = time.time()
+        self.update_parameters(PERCLOS, n_blink, self.key)
+        self.timers[1] = time.time() - start_time
+
+
+        # Print segment
+        if time.time() - self.print_timer > 5:
+            # print(self.timers)
+            # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
+            self.print_timer = time.time()
+            # print(self.truth_table, self.fatigue_dict, self.index)
+    
     
     def run(self):
         print("[INFO] Classifier thread Opened")
@@ -60,18 +102,21 @@ class Classifier(threading.Thread):
 
         while self.running:
             
-
+            
             # INIT phase
             if not self.initialzed():  key = 'INIT'
+
+            
 
             if not init_phase_done and self.initialzed(): 
                 print("[INFO] INIT-Phase done. Treshold paramters are: {}".format(self.TRESHOLDS))
                 init_phase_done = True
                 key = 'RUN'
             
+            
             # Running phase
             (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
-            self.update_parameters(PERCLOS, n_blink, key)
+            # self.update_parameters(PERCLOS, n_blink, key)
 
             # Print segment
             if time.time() - self.print_timer > 1:
@@ -84,28 +129,34 @@ class Classifier(threading.Thread):
     def update_parameters(self, PERCLOS, n_blink, key):
 
         # Only run 2 times a second, and when enough data it present
-        if time.time() - self.timer > .5 and len(self.data['EAR']['y']) > 100:
+        if time.time() - self.timer > .5 and len(self.data['EAR']['y']) > 50:
                 self.timer = time.time()
-                modified_list = np.round(self.data['EAR']['y'][-100:] * 100, decimals= 2)
+                modified_list = np.round(self.data['EAR']['y'][-50:] * 100, decimals= 2)
                 entropy = self.appr_entropy(modified_list, 2, 3)
-
                 self.entropy[key] = np.append(self.entropy[key], entropy)
-                self.entropy_time =np.append(self.entropy_time, time.time() - self.start_time)
+                
+                if key == 'RUN': self.entropy_time =np.append(self.entropy_time, time.time() - self.start_time)
+
+        self.safe_EAR()
+
 
         timestamp = time.time() - self.start_time
 
         if self.old_n_blink != n_blink:
             self.old_n_blink = n_blink
             self.n_blink[key] = np.append(self.n_blink[key], n_blink)
-            self.blink_n_time = np.append(self.blink_n_time, timestamp)
+            if key == 'RUN': self.blink_n_time = np.append(self.blink_n_time, timestamp)
 
         # TODO: Not a good quick fix
         if self.old_perclos != PERCLOS:
             self.old_perclos = PERCLOS
             self.perclos[key] = np.append(self.perclos[key], PERCLOS)
-            self.perclos_time = np.append(self.perclos_time, timestamp)
+            if key == 'RUN': self.perclos_time = np.append(self.perclos_time, timestamp)
         # Updating the INIT_TRESHOLDS 
         time_stamp = time.time() - self.start_time
+        if time_stamp == 0.0: time_stamp = 0.01
+        
+
         if key == 'INIT':
             entropy      = np.average(self.entropy['INIT'])
             blink        = 30 * len(self.data['BLINK']['x']) / time_stamp
@@ -154,6 +205,16 @@ class Classifier(threading.Thread):
             
             self.previous_message = self.current_message
     
+
+    def safe_EAR(self):
+        if len(self.data['EAR']['y']) > 500:
+            with open(self.file_name, 'w') as f:
+                writer = csv.writer(f)
+                for (x, y) in zip(self.data['EAR']['x'][:450], self.data['EAR']['y'][:450]):
+                    writer.writerow([x, y])
+            self.data['EAR']['x'] = self.data['EAR']['x'][450:]
+            self.data['EAR']['y'] = self.data['EAR']['y'][450:]
+
     def get_time_blinked(self, dataset):
         time_blinked = 0
         for y  in dataset:
@@ -192,9 +253,6 @@ class Classifier(threading.Thread):
         self.running = False
     
     def get_blink(self):
-        for data_points in self.data['BLINK']['y']:
-            # print(data_points)
-            pass
         return [data_points['y'] for data_points in self.data['BLINK']['y']]
 
 
