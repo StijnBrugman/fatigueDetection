@@ -208,7 +208,7 @@ class Classifier():
 
     def safe_EAR(self):
         if len(self.data['EAR']['y']) > 500:
-            with open(self.file_name, 'w') as f:
+            with open(self.file_name, 'a') as f:
                 writer = csv.writer(f)
                 for (x, y) in zip(self.data['EAR']['x'][:450], self.data['EAR']['y'][:450]):
                     writer.writerow([x, y])

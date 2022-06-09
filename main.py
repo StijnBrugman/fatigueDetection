@@ -32,10 +32,10 @@ if __name__ == '__main__':
     acq.start()
     cls = Classifier(mode=RUN_MODE)
     # cls.start()
-    
-
 
     acq.set_setting(parser.get_arg('safe'))
+
+    timer = 0
 
     try:
         while True:
@@ -66,6 +66,10 @@ if __name__ == '__main__':
                 cv2.waitKey(1)
 
             cls._run()
+
+            if time.time() - timer > 10:
+                timer = time.time()
+                acq.remove_non_blink_frames(prs.x_values['BLINK'])
             # FPS = 1.0 / (time.time() - current_time)
             # print("[INFO] Framerate Main-Threat is: {}".format(FPS))
 

@@ -50,6 +50,10 @@ class Processing():
             self.add_to_buffer('BLINK', (self.x_values['EAR'][index[-1]], temp_y_value))
             print("[DATA] Blink Detected with duration: {}s".format(self.y_values['BLINK'][-1]['right']-self.y_values['BLINK'][-1]['left']))
 
+        if len(self.y_values['EAR'] > 500):
+            self.x_values['EAR'] = self.x_values['EAR'][250:]
+            self.y_values['EAR'] = self.y_values['EAR'][250:]
+
     def find_blinks(self):
         # print(self.y_values['EAR'])
         index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=BLINK_WIDTH)

@@ -8,6 +8,8 @@ import time
 import os
 import glob
 
+from src.Settings import ABS_PATH
+
 
 class Acquisition(threading.Thread):
     def __init__(self):
@@ -39,6 +41,9 @@ class Acquisition(threading.Thread):
         self.frames = {}
 
         self.safe = False
+
+        self.old_frames = {}
+        self.frame_indx_len = 0
     
 
 
@@ -146,10 +151,13 @@ class Acquisition(threading.Thread):
 
     def safe_frames(self, frames_index):
         if not self.safe: return
+        key_elements = self.frames.keys()
         for time in frames_index:
             index = str("{:.2f}".format(time))
-            file_name = "C:/Users/JohnBrugman/fatigueDetection/frames/" + "frame[{}].png".format(index)
-            cv2.imwrite(file_name, self.frames.get(index))
+            file_name = ABS_PATH + "/frames/frame[{}].png".format(index)
+            frame = self.frames.get(index)
+            if frame is None: continue
+            cv2.imwrite(file_name, frame)
         print("[INFO] Frames have been saved")
 
 
@@ -160,6 +168,25 @@ class Acquisition(threading.Thread):
         dim = (width, height)
         return cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
 
-    
+    def remove_non_blink_frames(self, frames_index):
+        # print(self.frames.keys(), frames_index)
+        temp_frames = self.old_frames.copy()
+
+        if len(frames_index) == self.frame_indx_len: return
+        len_index = len(frames_index)
+        frames_index = frames_index[self.frame_indx_len:]
+        self.frame_indx_len = len_index
+
+        
+        for time in frames_index:
+            index = str("{:.2f}".format(time))
+            temp_frames[index] = self.frames.get(index)
+        
+        self.frames = temp_frames.copy()
+        self.old_frames = temp_frames.copy()
+        
+        return self.frames
+        # print(self.frames.keys())
+
 
     
