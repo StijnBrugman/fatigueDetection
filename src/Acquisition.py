@@ -20,6 +20,8 @@ class Acquisition(threading.Thread):
         self.camera = cv2.VideoCapture(0)
         self.camera.set(cv2.CAP_PROP_FPS, 40)
 
+        ret, img = self.camera.read()
+
         #Initializing the face detector and landmark detector
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
@@ -30,6 +32,12 @@ class Acquisition(threading.Thread):
 
         (self.start_l, self.end_l) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
         (self.start_r, self.end_r) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+
+        # l_mouth, r_mouth, chin, nose, l_eye, r_eye
+        # self.index_orientation_landmarks = [48, 54, 8, 30, 36, 45]
+
+        # nose, chin, l_eye, r_eye, l_mouth, r_mouth
+        self.index_orientation_landmarks = [30, 8, 36, 45, 48, 54]
 
         self.buffer = []
 
@@ -101,13 +109,27 @@ class Acquisition(threading.Thread):
                 landmarks = face_utils.shape_to_np(landmarks)
                 self.eye_landmarks['left'] = landmarks[self.start_l:self.end_l]
                 self.eye_landmarks['right'] = landmarks[self.start_r:self.end_r]
-                self.add_to_buffer((timestamp, self.eye_landmarks))
 
-            for landmark_l, landmark_r in zip(self.eye_landmarks['left'], self.eye_landmarks['right']):
-                (x1, y1) = landmark_l
-                (x2, y2) = landmark_r
-                cv2.circle(self.frame, (x1, y1), 1, (255, 255, 255), -1)
-                cv2.circle(self.frame, (x2, y2), 1, (255, 255, 255), -1)
+                # Head orientation
+                orientation_landmarks = [
+                    landmarks[30], landmarks[8], landmarks[36], landmarks[45], landmarks[48], landmarks[54], 
+                ]
+
+                self.add_to_buffer({
+                    'eye':(timestamp, self.eye_landmarks),
+                    'orientation': orientation_landmarks,
+                    'img': frame
+                })
+
+                for landmark in orientation_landmarks:
+                    x,y = landmark
+                    cv2.circle(frame, (x, y), 5, (255, 255, 255), -1)
+
+                for landmark_l, landmark_r in zip(self.eye_landmarks['left'], self.eye_landmarks['right']):
+                    (x1, y1) = landmark_l
+                    (x2, y2) = landmark_r
+                    cv2.circle(frame, (x1, y1), 2, (255, 255, 255), -1)
+                    cv2.circle(frame, (x2, y2), 2, (255, 255, 255), -1)
             self.set_frame(frame)
             self.accesible = True
                 # self.buffer.append(self.eye_landmarks)
@@ -125,6 +147,9 @@ class Acquisition(threading.Thread):
         self.camera.release()
         print("[INFO] Acquisition Thread Closed")
         
+    def get_orientation_landmarks(self, landmarks):
+        return [landmark for i, landmark in enumerate(landmarks) if i in self.index_orientation_landmarks]
+    
     def frame_accisible(self):
         return self.accesible
 

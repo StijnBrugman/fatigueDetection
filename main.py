@@ -11,6 +11,7 @@ from src.datastorage import Datastorage
 from src.Settings import RUN_MODE, INIT_MODE
 
 import sys, time
+import numpy as np
 
 import warnings
 # warnings.filterwarnings("ignore")
@@ -37,12 +38,16 @@ if __name__ == '__main__':
 
     timer = 0
 
+    old_Frame = None
+
     try:
         while True:
             current_time = time.time()
             
             if acq.buffer_availble():
                     prs.update(acq.get_from_buffer())
+                    
+            if prs.buffer_availble('EAR'):
                     EAR_data = prs.get_from_buffer('EAR')
                     
                     cls.set_data('EAR', EAR_data)
