@@ -29,6 +29,9 @@ class Processing():
             [0, 0, 1]], dtype = "double"
         )
 
+        # face direction not towards cam
+        self.counter = 0
+
 
 
     def update(self, data):
@@ -62,7 +65,16 @@ class Processing():
         cv2.putText(img, str(yaw), tuple(p1), cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 255, 255), 3)
         cv2.line(img, p1, p2, (0, 255, 255), 2)
 
-        if abs(yaw) > 45: return
+        # If the head is rotated to much on the y-axis dont detect fatigue
+        if abs(yaw) > 35: 
+            if self.counter >= 100:
+                self.counter = 0
+                print("[WARNING] The user is not paying attention towards te road")
+            self.counter += 1
+            return
+        self.counter = 0
+
+        # Blinking detection segment     
         (timestamp, landmarks) = data['eye']
         l_landmarks = landmarks['left']
         r_landmarks = landmarks['right']

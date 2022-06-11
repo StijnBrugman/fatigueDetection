@@ -52,6 +52,8 @@ class Acquisition(threading.Thread):
 
         self.old_frames = {}
         self.frame_indx_len = 0
+
+        self.counter = 0
     
 
 
@@ -95,9 +97,19 @@ class Acquisition(threading.Thread):
             time_key = str("{:.2f}".format(timestamp))
             self.frames[time_key] = frame
             
-            # print("frames",len(self.frames))
+            if len(faces) < 1:
+                self.counter += 1
+                if self.counter >= 500:
+                    self.counter = 0
+                    print("[WARNING] No face is detected")
+            else:
+                self.counter = 0            
+
+            # if multiple faces are detected get closesed
+            if len(faces) > 1: faces = self.get_closesed_face(faces)
 
             for face in faces:
+                
                 x1 = face.left()
                 y1 = face.top()
                 x2 = face.right()
@@ -147,6 +159,13 @@ class Acquisition(threading.Thread):
         self.camera.release()
         print("[INFO] Acquisition Thread Closed")
         
+    def get_closesed_face(self, faces):
+        index, size = 0, 0
+        for i, face in enumerate(faces): 
+            length = face.right() - face.left()
+            if length > size: index, size = i, length
+        return [faces[index]]
+
     def get_orientation_landmarks(self, landmarks):
         return [landmark for i, landmark in enumerate(landmarks) if i in self.index_orientation_landmarks]
     
