@@ -7,8 +7,6 @@ import time
 from json import dumps
 from src.Settings import ABS_PATH
 
-
-
 class Datastorage():
     def __init__(self):
         data_types = ['Blink', 'Blink_n', 'Perclos', 'Entropy', 'Fatigue', 'Fatigue_Message']
@@ -39,7 +37,6 @@ class Datastorage():
         file_name = ABS_PATH + r"/data/tresholds_{}.txt".format(str_date_time)
         with open(file_name, 'w') as f:
             f.write(dumps(thresholds))
-
 
     def create_data_dict(self, types):
         data_dict = {}

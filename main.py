@@ -1,44 +1,38 @@
 #Importing OpenCV Library for basic image processing functions
-import cv2
+import cv2, sys, time
 
 from src.Acquisition import Acquisition
-
 from src.visualization import Visualization
 from src.processing import Processing
-from src.parser1 import Parser
+from src.parserHandeler import Parser
 from src.classifier import Classifier
 from src.datastorage import Datastorage
 from src.Settings import RUN_MODE, INIT_MODE
 
 import sys, time
-import numpy as np
 
 import warnings
 # warnings.filterwarnings("ignore")
 
-
+# INIT Classes
+parser = Parser()
+ds = Datastorage()
+prs = Processing()
+cls = Classifier(mode=RUN_MODE)
+acq = Acquisition()
 
 if __name__ == '__main__':
     '''
     Setup
     '''
 
-    parser = Parser()
-    ds = Datastorage()
-    prs = Processing()
+    
 
     if parser.get_arg('vis'): vis = Visualization()
-    
-    acq = Acquisition()
     acq.start()
-    cls = Classifier(mode=RUN_MODE)
-    # cls.start()
-
     acq.set_setting(parser.get_arg('safe'))
-
     timer = 0
 
-    old_Frame = None
 
     try:
         while True:
@@ -104,7 +98,7 @@ if __name__ == '__main__':
 
     # Closing all windows
     cv2.destroyAllWindows()
-    sys.exit()
+    sys.exit(0)
 
 
 

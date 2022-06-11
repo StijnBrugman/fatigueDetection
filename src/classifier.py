@@ -1,14 +1,12 @@
 from cv2 import threshold
 import numpy as np
 import time, csv
-import threading
 from datetime import datetime
 from src.Settings import ABS_PATH, INIT_TIME, PERCLOS_TIME_INTERVAL, FATIGUE_LEVELS, TRESHOLDS, CLASS_TIMES, CLASS_TRESHOLDS, CLASS_WEIGHT
 
 class Classifier():
 
     def __init__(self, mode = 'INIT'):
-        # threading.Thread.__init__(self)
         self.running = True
         
         self.data = {'EAR': {'x': np.array([]),'y': np.array([]),}, 'BLINK':{ 'x': np.array([]),'y': np.array([]),}}
@@ -43,7 +41,6 @@ class Classifier():
 
         self.fatigue_messages = {'x': [], 'y': []}
 
-
         self.mode = mode
 
         self.old_fatigue_level = None
@@ -53,8 +50,6 @@ class Classifier():
 
         self.key = 'INIT'
         self.init_phase_done = False
-        
-        self.timers = [0, 0, 0]
 
         date_time = datetime.fromtimestamp(time.time())
         str_date_time = date_time.strftime("%d_%m_%Y_%H_%M_%S")
@@ -65,66 +60,18 @@ class Classifier():
         # INIT phase
         if not self.initialzed():  self.key = 'INIT'
 
-        
-
         if not self.init_phase_done and self.initialzed(): 
             print("[INFO] INIT-Phase done. Treshold paramters are: {}".format(self.TRESHOLDS))
             self.init_phase_done = True
             self.key = 'RUN'
-        
-        
-        # Running phase
-        
-        start_time = time.time()
+
+        # RUNNING phase
         (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
-        self.timers[0] = time.time() - start_time
-
-        start_time = time.time()
         self.update_parameters(PERCLOS, n_blink, self.key)
-        self.timers[1] = time.time() - start_time
-
 
         # Print segment
         if time.time() - self.print_timer > 5:
-            # print(self.timers)
-            # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
             self.print_timer = time.time()
-            # print(self.truth_table, self.fatigue_dict, self.index)
-    
-    
-    def run(self):
-        print("[INFO] Classifier thread Opened")
-
-
-        key = 'RUN'
-        init_phase_done = False
-        
-
-        while self.running:
-            
-            
-            # INIT phase
-            if not self.initialzed():  key = 'INIT'
-
-            
-
-            if not init_phase_done and self.initialzed(): 
-                print("[INFO] INIT-Phase done. Treshold paramters are: {}".format(self.TRESHOLDS))
-                init_phase_done = True
-                key = 'RUN'
-            
-            
-            # Running phase
-            (PERCLOS, n_blink) = self.calc_PERCLOS(time_interval = PERCLOS_TIME_INTERVAL)
-            # self.update_parameters(PERCLOS, n_blink, key)
-
-            # Print segment
-            if time.time() - self.print_timer > 1:
-                # print(np.average(self.fatigue_values[-20:]), self.fatigue_level_index)
-                self.print_timer = time.time()
-                # print(self.truth_table, self.fatigue_dict, self.index)
-        
-        print("[INFO] Classifier Thread Closed")
 
     def update_parameters(self, PERCLOS, n_blink, key):
 
@@ -255,8 +202,6 @@ class Classifier():
     def get_blink(self):
         return [data_points['y'] for data_points in self.data['BLINK']['y']]
 
-
-    
     def set_data(self, type, data):
         x, y = data
         self.data[type]['x'] = np.append(self.data[type]['x'], x)

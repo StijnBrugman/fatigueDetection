@@ -1,7 +1,7 @@
 import numpy as np
-from cv2 import solvePnP, SOLVEPNP_UPNP, projectPoints
+from cv2 import solvePnP, projectPoints
 from scipy.signal import find_peaks
-from src.Settings import PROMINENCE, BLINK_WIDTH
+from src.Settings import PROMINENCE, BLINK_WIDTH, FACE_MODEL_MATRIX, CAMERA_MATRIX
 import math, cv2
 
 
@@ -11,28 +11,11 @@ class Processing():
         self.x_values = {'EAR': np.array([]),'BLINK': np.array([])}
         self.y_values = {'EAR': np.array([]),'BLINK': np.array([])}
 
-        self.model_points = np.array([
-            (0.0, 0.0, 0.0),             # Nose tip
-            (0.0, -330.0, -65.0),        # Chin
-            (-225.0, 170.0, -135.0),     # Left eye left corner
-            (225.0, 170.0, -135.0),      # Right eye right corne
-            (-150.0, -150.0, -125.0),    # Left Mouth corner
-            (150.0, -150.0, -125.0)      # Right mouth corner
-        ])
-
-        size = [460.0, 400.0]
-        focal_length = size[1]
-        center = (size[1]/2, size[0]/2)
-        self.camera_matrix = np.array(
-            [[focal_length, 0, center[0]],
-            [0, focal_length, center[1]],
-            [0, 0, 1]], dtype = "double"
-        )
+        self.model_points = np.array(FACE_MODEL_MATRIX)
+        self.camera_matrix = np.array(CAMERA_MATRIX, dtype = "double")
 
         # face direction not towards cam
         self.counter = 0
-
-
 
     def update(self, data):
         orientation_landmarks = np.array(data['orientation'], dtype='float64')

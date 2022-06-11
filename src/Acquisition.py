@@ -1,12 +1,7 @@
-
-import threading
-import cv2
+import cv2, dlib
 import numpy as np
-import dlib
+import time, os, glob, threading
 from imutils import face_utils
-import time
-import os
-import glob
 
 from src.Settings import ABS_PATH
 
@@ -20,43 +15,28 @@ class Acquisition(threading.Thread):
         self.camera = cv2.VideoCapture(0)
         self.camera.set(cv2.CAP_PROP_FPS, 40)
 
-        ret, img = self.camera.read()
-
         #Initializing the face detector and landmark detector
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-        self.eye_landmarks = {
-            'left'  : [],
-            'right' : []
-        }
+        self.eye_landmarks = {'left'  : [], 'right' : []}
 
         (self.start_l, self.end_l) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
         (self.start_r, self.end_r) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 
-        # l_mouth, r_mouth, chin, nose, l_eye, r_eye
-        # self.index_orientation_landmarks = [48, 54, 8, 30, 36, 45]
-
         # nose, chin, l_eye, r_eye, l_mouth, r_mouth
         self.index_orientation_landmarks = [30, 8, 36, 45, 48, 54]
 
-        self.buffer = []
-
         self.start_time = time.time()
-
-        self.frame = None
-
+        self.counter = 0    
+        self.buffer = []
         self.accesible = False
-        self.frames = {}
-
         self.safe = False
 
         self.old_frames = {}
+        self.frames = {}
         self.frame_indx_len = 0
-
-        self.counter = 0
+        self.frame = None
     
-
-
     def run(self):
         print("[INFO] Acquisition Thread Opened")
 
@@ -66,10 +46,9 @@ class Acquisition(threading.Thread):
         
         print("[INFO] All old frames have been removed")
 
-        self.timer = time.time()
+        timer = time.time()
         FPS_array = np.array([])
 
-        
         while self.running:
             start_time = time.time()
             _, frame = self.camera.read()
@@ -147,8 +126,8 @@ class Acquisition(threading.Thread):
                 # self.buffer.append(self.eye_landmarks)
             # cv2.imshow("Frame", frame)
             
-            if time.time() - self.timer > 20: 
-                self.timer = time.time()
+            if time.time() - timer > 20: 
+                timer = time.time()
                 
                 FPS = 1 / (time.time() - start_time)
                 FPS_array = np.append(FPS_array, FPS)
@@ -165,9 +144,6 @@ class Acquisition(threading.Thread):
             length = face.right() - face.left()
             if length > size: index, size = i, length
         return [faces[index]]
-
-    def get_orientation_landmarks(self, landmarks):
-        return [landmark for i, landmark in enumerate(landmarks) if i in self.index_orientation_landmarks]
     
     def frame_accisible(self):
         return self.accesible
@@ -195,7 +171,6 @@ class Acquisition(threading.Thread):
 
     def safe_frames(self, frames_index):
         if not self.safe: return
-        key_elements = self.frames.keys()
         for time in frames_index:
             index = str("{:.2f}".format(time))
             file_name = ABS_PATH + "/frames/frame[{}].png".format(index)
