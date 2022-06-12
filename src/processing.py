@@ -45,11 +45,11 @@ class Processing():
         
         # print(ang1, rotation_vector)
         
-        cv2.putText(img, str(yaw), tuple(p1), cv2.FONT_HERSHEY_SIMPLEX, 2, (128, 255, 255), 3)
+        cv2.putText(img, "Y: {:.2f}, P: {:.2f}".format(yaw, pitch), tuple(p1), cv2.FONT_HERSHEY_SIMPLEX, .6, (128, 255, 255), 3)
         cv2.line(img, p1, p2, (0, 255, 255), 2)
 
         # If the head is rotated to much on the y-axis dont detect fatigue
-        if abs(yaw) > 35: 
+        if abs(yaw) > 35 or abs(pitch) < 160: 
             if self.counter >= 100:
                 self.counter = 0
                 print("[WARNING] The user is not paying attention towards te road")
@@ -97,8 +97,8 @@ class Processing():
         return (eulers[2][0],eulers[0][0],eulers[1][0])
 
     def find_blinks(self):
-        # print(self.y_values['EAR'])
-        index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(None, 0.3), prominence=PROMINENCE, width=BLINK_WIDTH)
+        # if len(self.y_values['EAR']) > 1: print(self.y_values['EAR'][-1:] * -1)
+        index, properties = find_peaks(self.y_values['EAR'][-100:] * -1, height=(-0.3, None), prominence=PROMINENCE, width=BLINK_WIDTH)
         
         # Prevents the shifting index from incrementing the blinking frequency
         len_y = len(self.y_values['EAR'])
@@ -119,7 +119,7 @@ class Processing():
         self.y_values[type] = np.append(self.y_values[type], element[1])
         self.buffer[type].append(element)
 
-    def buffer_availble(self, type):
+    def buffer_availble(self, type): 
         return self.buffer[type]
     
     @staticmethod

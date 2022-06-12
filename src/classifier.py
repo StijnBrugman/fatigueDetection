@@ -70,8 +70,10 @@ class Classifier():
         self.update_parameters(PERCLOS, n_blink, self.key)
 
         # Print segment
-        if time.time() - self.print_timer > 5:
+        if time.time() - self.print_timer > 10:
             self.print_timer = time.time()
+            print(self.fatigue_values[-1])
+            
 
     def update_parameters(self, PERCLOS, n_blink, key):
 
@@ -88,7 +90,6 @@ class Classifier():
 
 
         timestamp = time.time() - self.start_time
-
         if self.old_n_blink != n_blink:
             self.old_n_blink = n_blink
             self.n_blink[key] = np.append(self.n_blink[key], n_blink)
