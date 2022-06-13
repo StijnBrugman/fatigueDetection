@@ -72,7 +72,7 @@ class Classifier():
         # Print segment
         if time.time() - self.print_timer > 10:
             self.print_timer = time.time()
-            print(self.fatigue_values[-1])
+            # print(self.fatigue_values[-1])
             
 
     def update_parameters(self, PERCLOS, n_blink, key):

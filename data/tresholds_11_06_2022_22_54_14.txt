@@ -1,1 +1,0 @@
-{"entropy": 0.0, "blink": 0.0, "perclos": 0.0}
