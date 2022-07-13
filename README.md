@@ -21,9 +21,9 @@ $ python ./main.py
 
 ## Flags
 Several flags can be added to the command to provide additional functionality.
-'''
+```
 $ python ./main.py -flags
-'''
+```
 flags:
 * -h : -help | Provides an overview of all the parsing options
 * -c : -cam | Views the camera capture frame
