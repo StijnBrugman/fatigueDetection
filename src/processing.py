@@ -4,7 +4,6 @@ from scipy.signal import find_peaks
 from src.Settings import PROMINENCE, BLINK_WIDTH, FACE_MODEL_MATRIX, CAMERA_MATRIX
 import math, cv2
 
-
 class Processing():
     def __init__(self):
         self.buffer = {'EAR': [],'BLINK': []}
@@ -125,4 +124,3 @@ class Processing():
     @staticmethod
     def distance(l1, l2):
         return np.linalg.norm(l1 - l2)
-    

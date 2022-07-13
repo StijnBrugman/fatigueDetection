@@ -60,5 +60,3 @@ class Datastorage():
             for column in ['x','y']:
                 columns.append(self.data_dict[key][column])
         return zip_longest(*columns)
-
-        

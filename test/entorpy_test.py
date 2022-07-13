@@ -1014,8 +1014,6 @@ U10 = np.round(U10, decimals = decimal)
 
 m, r = 2, 3
 
-# print(U)
-# U = np.array([85.121, 80.123, 89.321] * 17)
 print(ApEn(U, m, r))
 print(ApEn(U3, m, r))
 print(ApEn(U4, m, r))

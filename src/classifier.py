@@ -153,7 +153,6 @@ class Classifier():
             
             self.previous_message = self.current_message
     
-
     def safe_EAR(self):
         if len(self.data['EAR']['y']) > 500:
             with open(self.file_name, 'a') as f:

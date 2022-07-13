@@ -7,17 +7,17 @@ Fatigue is a major determinant in traffic accidents. Normalization and automatio
 ### Software & Requirements
 The software is fully written in python 3.10.0.
 A little intro about running the program. First install the requirements by runnning this command.
-'''
+```
 $ pip install -r requirements.txt
-'''
+```
 or this.
-'''
+```
 $ python -m pip install -r requirements.txt
-'''
+```
 Now you can run the program.
-'''
+```
 $ python ./main.py
-'''
+```
 
 ## Flags
 Several flags can be added to the command to provide additional functionality.

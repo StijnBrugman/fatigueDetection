@@ -36,4 +36,3 @@ CAMERA_MATRIX = [
     [0, size[1], center[1]],
     [0, 0, 1]
 ]
-

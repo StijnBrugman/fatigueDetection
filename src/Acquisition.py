@@ -207,5 +207,3 @@ class Acquisition(threading.Thread):
         return self.frames
         # print(self.frames.keys())
 
-
-    

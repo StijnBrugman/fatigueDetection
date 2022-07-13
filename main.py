@@ -99,8 +99,3 @@ if __name__ == '__main__':
     # Closing all windows
     cv2.destroyAllWindows()
     sys.exit(0)
-
-
-
-
-
